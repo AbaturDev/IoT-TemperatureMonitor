@@ -1,27 +1,36 @@
-import machine, dht, time, network, json, utime, ntptime
+import machine, dht, time, network, json, utime, ntptime, gc
 from umqtt.simple import MQTTClient
 
 
-SSID = "<WIFI_SSID>"
-PASSWORD = "<WIFI_PASS>"
+SSID = "iPhone (Aleksander)"
+PASSWORD = "12345678"
 
 PIN = 12
 
-BROKER = "<broker_address>"
-CLIENT_ID = "<client_id>"
-SUBSCRIPTION = b"<sub_name>"
-MQTT_USER = "<user>"
-MQTT_PASSWORD = "<password>"
+BROKER = "broker.emqx.io"
+CLIENT_ID = "esp8266-temp-sensor"
+SUBSCRIPTION = b"temperature"
+MQTT_USER = "admin"
+MQTT_PASSWORD = "admin"
 
-STATUS_DATA_ERROR = "dataError"
-STATUS_CRITICAL_ERROR = "criticalError"
-STATUS_SUCCESS = "success"
+# Enum status
+STATUS_SUCCESS = 0
+STATUS_DATA_ERROR = 1
+STATUS_CRITICAL_ERROR = 2
 
 def sub_cb(topic, msg):
   print((topic, msg))
 
 def get_datetime():
-    return "{:04d}-{:02d}-{:02d} {:02d}:{:02d}:{:02d}".format(*utime.localtime()[:6])
+    return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(*utime.gmtime()[:6])
+
+def ensure_connected(client):
+    try:
+        client.ping()
+    except:
+        print("Reconnecting to MQTT broker...")
+        client.connect()
+        client.subscribe(SUBSCRIPTION)
 
 sensor = dht.DHT22(machine.Pin(PIN))
 
@@ -51,6 +60,7 @@ while True:
                 "timestamp": get_datetime(),
                 "message": "Failed to read data from sensor"
             })
+            ensure_connected(client)
             client.publish(SUBSCRIPTION, error_payload)
             print("Successfully sent data")
             
@@ -68,20 +78,29 @@ while True:
             "temperature": temperature,
             "humidity": humidity
         })
-
+        
+        ensure_connected(client)
         client.publish(SUBSCRIPTION, payload)
         print("Successfully sent data")
 
     except OSError as ex:
         print("Critical error occured. Restarting machine")
-        error_payload = json.dumps({
-            "status": STATUS_CRITICAL_ERROR,
-            "timestamp": get_datetime(),
-            "message": "Critical failure, restarting"
-        })
-        client.publish(SUBSCRIPTION, error_payload)
-        print("Successfully sent data")
+        try:
+            error_payload = json.dumps({
+                "status": STATUS_CRITICAL_ERROR,
+                "timestamp": get_datetime(),
+                "message": "Critical failure, restarting machine"
+            })
+            
+            ensure_connected(client)
+            client.publish(SUBSCRIPTION, error_payload)
+            print("Successfully sent data")
+        except:
+            print("Failed to send data - connection error")
         time.sleep(5)
         machine.reset()
-            
-    time.sleep(60)
+    
+    # Sleep for 60s and keep connection alive
+    for _ in range(12):
+        client.check_msg()
+        time.sleep(5)
