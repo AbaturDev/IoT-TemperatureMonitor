@@ -2,16 +2,16 @@ import machine, dht, time, network, json, utime, ntptime, gc
 from umqtt.simple import MQTTClient
 
 
-SSID = "iPhone (Aleksander)"
-PASSWORD = "12345678"
+SSID = "<WIFI_SSID>"
+PASSWORD = "<WIFI_PASS>"
 
 PIN = 12
 
-BROKER = "broker.emqx.io"
-CLIENT_ID = "esp8266-temp-sensor"
-SUBSCRIPTION = b"temperature"
-MQTT_USER = "admin"
-MQTT_PASSWORD = "admin"
+BROKER = "<broker_address>"
+CLIENT_ID = "<client_id>"
+SUBSCRIPTION = b"<sub_name>"
+MQTT_USER = "<user>"
+MQTT_PASSWORD = "<password>"
 
 # Enum status
 STATUS_SUCCESS = 0
