@@ -373,3 +373,5 @@ FodyWeavers.xsd
 venv
 */.venv
 .venv
+
+*.bin
