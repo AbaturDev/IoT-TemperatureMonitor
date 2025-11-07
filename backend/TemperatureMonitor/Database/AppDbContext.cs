@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Measurement> Measurements { get; init; }
+    public DbSet<MeasurementSnapshot> MeasurementSnapshots { get; init; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,5 +18,8 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Measurement>()
             .HasIndex(m => m.Id);
+        
+        modelBuilder.Entity<MeasurementSnapshot>()
+            .HasIndex(ms => ms.Id);
     }
 }

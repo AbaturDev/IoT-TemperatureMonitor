@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.BackgroundServices;
 using TemperatureMonitor.Database;
+using TemperatureMonitor.Endpoints;
 using TemperatureMonitor.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,6 +16,7 @@ builder.Services.AddOptions<MqttOptions>()
     .ValidateOnStart();
 
 builder.Services.AddHostedService<MqttBackgroundService>();
+builder.Services.AddHostedService<SnapshotBackgroundService>();
 
 builder.Services.AddOpenApi();
 
@@ -26,5 +28,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapMeasurementEndpoint();
 
 app.Run();
