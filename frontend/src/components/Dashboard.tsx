@@ -4,7 +4,7 @@ import WeatherChart from "./WeatherChart";
 import type { Measurement } from "./WeatherChart";
 import "./Dashboard.css";
 
-type Status = "Online" | "Offline" | "Error";
+type Status = "Online" | "Offline" | "Server Error";
 
 export function Dashboard() {
   const [live, setLive] = useState<Measurement | null>(null);
@@ -14,7 +14,7 @@ export function Dashboard() {
   const handleSetStatus = (e: number) => {
     if (e == 0) setStatus("Online");
     else if (e == 1) setStatus("Offline");
-    else if (e == 2) setStatus("Error");
+    else if (e == 2) setStatus("Server Error");
   };
 
   const fetchMeasurements = async (
@@ -29,6 +29,7 @@ export function Dashboard() {
       setMeasurements(data);
     } catch (err) {
       console.log(err);
+      handleSetStatus(2);
     }
   };
 
@@ -39,16 +40,18 @@ export function Dashboard() {
       setLive(data);
     } catch (err) {
       console.log(err);
+      handleSetStatus(2);
     }
   };
 
-  const fetchLatestSensor = async () => {
+  const fetchSensorStatus = async () => {
     try {
       const response = await fetch(`${API_URL}/api/sensor/latest`);
       const data = await response.json();
       handleSetStatus(data.status);
     } catch (err) {
       console.log(err);
+      handleSetStatus(2);
     }
   };
 
@@ -62,20 +65,43 @@ export function Dashboard() {
       };
     } catch (err) {
       console.log(err);
+      handleSetStatus(2);
     }
   };
 
   useEffect(() => {
     fetchEventSource();
     fetchLatestMeasurement();
-    fetchLatestSensor();
-    fetchMeasurements(new Date(new Date().getTime() - 24 * 60 * 60 * 1000));
+    fetchSensorStatus();
+    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000));
   }, []);
+
+  useEffect(() => {
+    if (
+      live != null &&
+      new Date(live.timestamp).getTime() !=
+        new Date(measurements[0].timestamp).getTime()
+    ) {
+      setMeasurements([live, ...measurements]);
+    }
+    const checkRateMs = 6 * 60 * 1000;
+
+    const interval = setInterval(() => {
+      if (!live) return;
+
+      const liveTime = new Date(live.timestamp).getTime();
+      const diff = Date.now() - liveTime;
+
+      if (diff > checkRateMs) handleSetStatus(1);
+    }, 30 * 1000);
+
+    return () => clearInterval(interval);
+  }, [live]);
 
   return (
     <div className="dashboard-container">
       <div className="sensor-status-container">
-        Status:{" "}
+        Sensor Status:{" "}
         <span
           className={
             status === "Online"
@@ -89,38 +115,42 @@ export function Dashboard() {
         </span>
       </div>
       {live && (
-        <div className="live-stats">
-          {/* <div className="day">
-            {new Date(live.timestamp).toLocaleDateString("pl-PL", {
-              weekday: "long",
-            })}
+        <>
+          <div className="live-stats">
+            <div className="date">
+              <div className="day">
+                {new Date(live.timestamp).toLocaleDateString("pl-PL", {
+                  weekday: "long",
+                })}
+              </div>
+              <div className="month">
+                {new Date(live.timestamp).toLocaleDateString("pl-PL", {
+                  day: "numeric",
+                  month: "long",
+                })}
+              </div>
+            </div>
+            <div className="temperature-humidity">
+              <div className="temperature">{live.temperature.toFixed(0)}°C</div>
+              <div className="humidity">
+                wilgotność: <span>{live.humidity.toFixed(0)}%</span>
+              </div>
+            </div>
           </div>
-          <div className="temperature-humidity">
-            <div className="temperature">{live.temperature.toFixed(0)}C</div>
-            <div className="humidity">{live.humidity.toFixed(0)}%</div>
-          </div> */}
-          <div className="date">
-            <div className="day">
-              {new Date(live.timestamp).toLocaleDateString("pl-PL", {
-                weekday: "long",
+          <div className="live-last-update">
+            Ostatnia aktualizacja:{" "}
+            <span>
+              {new Date(live.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
               })}
-            </div>
-            <div className="month">
-              {new Date(live.timestamp).toLocaleDateString("pl-PL", {
-                day: "numeric",
-                month: "long",
-              })}
-            </div>
+            </span>
           </div>
-          <div className="temperature-humidity">
-            <div className="temperature">{live.temperature.toFixed(0)}C</div>
-            <div className="humidity">
-              wilgotność: <span>{live.humidity.toFixed(0)}%</span>
-            </div>
-          </div>
-        </div>
+        </>
       )}
-      <WeatherChart data={measurements} />
+      <div className="chart-container">
+        <WeatherChart data={measurements} />
+      </div>
     </div>
   );
 }
