@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// builder.Services.AddHostedService<MqttBackgroundService>();
+builder.Services.AddHostedService<MqttBackgroundService>();
 builder.Services.AddHostedService<SnapshotBackgroundService>();
 
 builder.Services.AddOpenApi();

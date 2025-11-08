@@ -12,7 +12,7 @@ public class SnapshotBackgroundService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly Channel<MeasurementSnapshot> _channel;
 
-    private const int IntervalMs = 300_000; // 5 min 
+    private const int IntervalMs = 300_000; // 5 min
     
     public SnapshotBackgroundService(ILogger<SnapshotBackgroundService> logger, IServiceProvider serviceProvider, Channel<MeasurementSnapshot> channel)
     {
@@ -35,7 +35,7 @@ public class SnapshotBackgroundService : BackgroundService
 
         var measurementSnapshot = new MeasurementSnapshot
         {
-            Timestamp = measurements.Max(x => x.Timestamp),
+            Timestamp = DateTimeOffset.UtcNow,
             Temperature = measurements.Average(x => x.Temperature)!.Value,
             Humidity = measurements.Average(x => x.Humidity)!.Value,
         };

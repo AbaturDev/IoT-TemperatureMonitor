@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.Database;
 using TemperatureMonitor.Database.Entities;
-using TemperatureMonitor.Dtos.Mqtt;
+using TemperatureMonitor.Database.Enums;
 
 namespace TemperatureMonitor.Endpoints;
 
@@ -17,18 +17,30 @@ public static class MeasurementSnapshotEndpoint
             .AllowAnonymous()
             .WithOpenApi();
         
-        group.MapGet("/live/measurements", async (HttpResponse response, Channel<MeasurementSnapshot> channel) =>
+        group.MapGet("/live/measurements", async (HttpResponse response, [FromServices] Channel<MeasurementSnapshot> channel, CancellationToken ct) =>
         {
             response.Headers.Append("Content-Type", "text/event-stream");
             response.Headers.Append("Cache-Control", "no-cache");
-            var reader = channel.Reader;
 
-            await foreach (var measurementSnapshot in reader.ReadAllAsync())
+            await foreach (var measurementSnapshot in channel.Reader.ReadAllAsync(ct))
             {
-                var json = JsonSerializer.Serialize(measurementSnapshot);
-                await response.WriteAsync($"data: {json}\n\n");
-                await response.Body.FlushAsync();
+                var json = JsonSerializer.Serialize(measurementSnapshot, new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
+                await response.WriteAsync($"data: {json}\n\n", ct);
+                await response.Body.FlushAsync(ct);
             }
+
+            _ = Task.Run(async () =>
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    await response.WriteAsync(":\n\n", ct);
+                    await response.Body.FlushAsync(ct);
+                    await Task.Delay(TimeSpan.FromSeconds(30), ct);
+                }
+            }, ct);
         })
         .Produces<MeasurementSnapshot>(StatusCodes.Status200OK, "text/event-stream")
         .WithDescription("Returns a continuous stream of live measurement snapshots via Server-Sent Events");
@@ -53,7 +65,19 @@ public static class MeasurementSnapshotEndpoint
 
             return Results.Ok(result);
         })
-        .Produces<List<MeasurementSnapshot>>(StatusCodes.Status200OK, "application/json");
+        .Produces<List<MeasurementSnapshot>>(StatusCodes.Status200OK, "application/json")
+        .WithDescription("Returns measurement snapshots for given time period");
+
+        group.MapGet("/sensor/latest", async (AppDbContext context, CancellationToken ct) =>
+        {
+            var maxTimestamp = await context.Measurements.MaxAsync(x => x.Timestamp, ct);
+            
+            var result = await context.Measurements.FirstOrDefaultAsync(x => x.Timestamp == maxTimestamp, ct);
+
+            return Results.Ok(result);
+        })
+        .Produces<MeasurementStatus>(StatusCodes.Status200OK, "application/json")
+        .WithDescription("Returns last response from sensor");
     }
 
 }
