@@ -1,0 +1,72 @@
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.sensor-status-container {
+  background-color: var(--secondary-background-color);
+  padding: 24px;
+  border-radius: 12px;
+  font-size: 16px;
+}
+
+.status.online {
+  color: rgb(0, 205, 0);
+  animation: online-pulse 1s ease-in alternate infinite;
+}
+.status.offline {
+  color: rgb(137, 137, 137);
+}
+.status.error {
+  color: rgb(205, 0, 0);
+}
+
+@keyframes online-pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+
+.live-stats {
+  display: flex;
+  gap: 64px;
+  align-items: center;
+  background-color: var(--secondary-background-color);
+  padding: 32px;
+  border-radius: 12px;
+}
+
+.date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+}
+
+.day {
+  text-transform: capitalize;
+  font-size: 28px;
+}
+
+.month {
+  font-size: 16px;
+  color: rgb(150, 150, 150);
+}
+
+.temperature-humidity {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.temperature {
+  font-size: 64px;
+}
+
+.humidity {
+  color: rgb(150, 150, 150);
+  font-size: 16px;
+}
