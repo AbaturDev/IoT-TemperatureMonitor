@@ -24,10 +24,7 @@ public static class MeasurementSnapshotEndpoint
 
             await foreach (var measurementSnapshot in channel.Reader.ReadAllAsync(ct))
             {
-                var json = JsonSerializer.Serialize(measurementSnapshot, new JsonSerializerOptions
-                {
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                });
+                var json = JsonSerializer.Serialize(measurementSnapshot);
                 await response.WriteAsync($"data: {json}\n\n", ct);
                 await response.Body.FlushAsync(ct);
             }
