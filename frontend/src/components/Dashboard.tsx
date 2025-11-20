@@ -8,7 +8,7 @@ type Status = "Online" | "Offline" | "Server Error";
 
 export function Dashboard() {
   const [live, setLive] = useState<Measurement | null>(null);
-  const [status, setStatus] = useState<Status>("Offline");
+  const [status, setStatus] = useState<Status>("Server Error");
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
 
   const handleSetStatus = (e: number) => {
@@ -73,12 +73,13 @@ export function Dashboard() {
     fetchEventSource();
     fetchLatestMeasurement();
     fetchSensorStatus();
-    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000));
+    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
   }, []);
 
   useEffect(() => {
     if (
       live != null &&
+      measurements.length > 0 &&
       new Date(live.timestamp).getTime() !=
         new Date(measurements[0].timestamp).getTime()
     ) {
@@ -114,7 +115,7 @@ export function Dashboard() {
           {status}
         </span>
       </div>
-      {live && (
+      {live != null && (
         <>
           <div className="live-stats">
             <div className="date">
@@ -131,7 +132,9 @@ export function Dashboard() {
               </div>
             </div>
             <div className="temperature-humidity">
-              <div className="temperature">{live.temperature.toFixed(0)}°C</div>
+              <div className="temperature">
+                {live.temperatureAvg.toFixed(0)}°C
+              </div>
               <div className="humidity">
                 wilgotność: <span>{live.humidity.toFixed(0)}%</span>
               </div>

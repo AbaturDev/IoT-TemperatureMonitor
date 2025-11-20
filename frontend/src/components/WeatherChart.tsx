@@ -12,8 +12,11 @@ import {
 
 export type Measurement = {
   timestamp: string;
-  temperature: number;
+  temperatureAvg: number;
+  temperatureMin: number;
+  temperatureMax: number;
   humidity: number;
+  count: number;
 };
 
 type WeatherChartProps = {
@@ -59,7 +62,7 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="temperature"
+            dataKey="temperatureAvg"
             stroke="#ff7300"
             dot={false}
             name="Temperatura"
