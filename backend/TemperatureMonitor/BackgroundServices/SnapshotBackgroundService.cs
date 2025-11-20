@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.Database;
 using TemperatureMonitor.Database.Entities;
 using TemperatureMonitor.Database.Enums;
+using TemperatureMonitor.Dtos.MeasurementSnapshots;
 
 namespace TemperatureMonitor.BackgroundServices;
 
@@ -10,12 +11,12 @@ public class SnapshotBackgroundService : BackgroundService
 {
     private readonly ILogger<SnapshotBackgroundService> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly Channel<MeasurementSnapshot> _channel;
+    private readonly Channel<MeasurementSnapshotDto> _channel;
     private readonly TimeProvider _timeProvider;
     
     private const int IntervalMs = 300_000; // 5 min
     
-    public SnapshotBackgroundService(ILogger<SnapshotBackgroundService> logger, IServiceProvider serviceProvider, Channel<MeasurementSnapshot> channel, TimeProvider timeProvider)
+    public SnapshotBackgroundService(ILogger<SnapshotBackgroundService> logger, IServiceProvider serviceProvider, Channel<MeasurementSnapshotDto> channel, TimeProvider timeProvider)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
@@ -66,7 +67,18 @@ public class SnapshotBackgroundService : BackgroundService
                 var measurementSnapshot = await CreateSnapshotAsync(context, ct);
                 if (measurementSnapshot != null)
                 {
-                    await _channel.Writer.WriteAsync(measurementSnapshot, ct);
+                    var dto = new MeasurementSnapshotDto
+                    {
+                        Id = measurementSnapshot.Id,
+                        Timestamp = measurementSnapshot.Timestamp,
+                        TemperatureAvg = measurementSnapshot.TemperatureAvg,
+                        TemperatureMin = measurementSnapshot.TemperatureMin,
+                        TemperatureMax = measurementSnapshot.TemperatureMax,
+                        HumidityAvg = measurementSnapshot.HumidityAvg,
+                        Count = measurementSnapshot.Count
+                    };
+                    
+                    await _channel.Writer.WriteAsync(dto, ct);
                 }
             }
             catch(Exception ex)

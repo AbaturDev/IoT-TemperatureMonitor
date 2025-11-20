@@ -4,6 +4,9 @@ namespace TemperatureMonitor.Dtos.MeasurementSnapshots;
 
 public sealed record MeasurementSnapshotDto
 {
+    [JsonPropertyName("id")]
+    public required Guid Id { get; init; }
+    
     [JsonPropertyName("timestamp")]
     public required DateTimeOffset Timestamp { get; init; }
     

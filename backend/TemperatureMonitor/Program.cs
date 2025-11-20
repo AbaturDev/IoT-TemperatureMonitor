@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.BackgroundServices;
 using TemperatureMonitor.Database;
 using TemperatureMonitor.Database.Entities;
+using TemperatureMonitor.Dtos.MeasurementSnapshots;
 using TemperatureMonitor.Endpoints;
 using TemperatureMonitor.Options;
 
@@ -27,12 +28,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSingleton(TimeProvider.System);
+
 builder.Services.AddHostedService<MqttBackgroundService>();
 builder.Services.AddHostedService<SnapshotBackgroundService>();
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddSingleton(Channel.CreateBounded<MeasurementSnapshot>(
+builder.Services.AddSingleton(Channel.CreateBounded<MeasurementSnapshotDto>(
     new BoundedChannelOptions(1)
     {
         SingleWriter = true,
