@@ -26,6 +26,7 @@ export function Dashboard() {
         `${API_URL}/api/measurements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
       );
       const data = await response.json();
+      console.log(data);
       setMeasurements(data);
     } catch (err) {
       console.log(err);
@@ -73,7 +74,8 @@ export function Dashboard() {
     fetchEventSource();
     fetchLatestMeasurement();
     fetchSensorStatus();
-    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
+    // fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
+    fetchMeasurements(new Date("2025-11-08T00:00:00"));
   }, []);
 
   useEffect(() => {

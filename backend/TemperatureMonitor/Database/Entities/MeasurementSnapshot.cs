@@ -1,6 +1,6 @@
 ﻿namespace TemperatureMonitor.Database.Entities;
 
-public sealed record MeasurementSnapshot
+public record MeasurementSnapshot
 {
     public Guid Id { get; init; }
     public DateTimeOffset Timestamp { get; init; }

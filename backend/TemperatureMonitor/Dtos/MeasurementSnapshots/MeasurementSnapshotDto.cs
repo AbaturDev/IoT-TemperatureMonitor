@@ -2,7 +2,7 @@
 
 namespace TemperatureMonitor.Dtos.MeasurementSnapshots;
 
-public sealed record MeasurementSnapshotDto
+public record MeasurementSnapshotDto
 {
     [JsonPropertyName("id")]
     public required Guid Id { get; init; }

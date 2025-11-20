@@ -19,6 +19,16 @@ export type Measurement = {
   count: number;
 };
 
+export type MeasurementWithTrend = {
+  timestamp: string;
+  temperatureAvg: number;
+  temperatureMin: number;
+  temperatureMax: number;
+  humidity: number;
+  count: number;
+  temperatureTrend: number;
+};
+
 type WeatherChartProps = {
   data: Measurement[];
 };
@@ -59,10 +69,12 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
             itemStyle={{ color: "white" }}
           />
           <Legend />
+
+          {/* linie */}
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="temperatureAvg"
+            dataKey="temperatureMin" // temperatureAvg
             stroke="#ff7300"
             dot={false}
             name="Temperatura"
@@ -70,10 +82,19 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
           <Line
             yAxisId="right"
             type="monotone"
-            dataKey="humidity"
+            dataKey="temperatureMax" // humidity
             stroke="#387908"
             dot={false}
             name="Wilgotność"
+          />
+          <Line
+            yAxisId="left"
+            type="monotone"
+            dataKey="temperatureTrend"
+            stroke="#346dadff"
+            dot={false}
+            strokeDasharray="5 5" // <-- to robi przerywaną linię
+            name="Trend"
           />
         </LineChart>
       </ResponsiveContainer>
