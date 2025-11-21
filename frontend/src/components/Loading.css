@@ -1,0 +1,54 @@
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+.loading-box {
+  display: flex;
+  gap: 10px;
+  padding: 20px;
+  position: absolute;
+  background-color: rgb(0, 0, 0);
+  border: 2px solid rgb(145, 145, 145);
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  border-radius: 12px;
+}
+
+.loading-dot {
+  border-radius: 100%;
+  width: 16px;
+  height: 16px;
+  background-color: hsl(0, 0%, 30%);
+  animation: loading-dot-bounce 600ms ease-in alternate infinite;
+}
+
+@keyframes loading-dot-bounce {
+  from {
+    transform: translateY(3px);
+  }
+
+  to {
+    background-color: hsl(0, 0%, 50%);
+  }
+}
+
+.loading-dot.a {
+  animation-delay: 0;
+}
+
+.loading-dot.b {
+  animation-delay: 200ms;
+}
+.loading-dot.c {
+  animation-delay: 400ms;
+}
+.loading-dot.d {
+  animation-delay: 600ms;
+}

@@ -7,6 +7,7 @@ import type {
   MeasurementWithTrend,
   SensorStatus,
 } from "../types/types";
+import Loading from "./Loading";
 
 type Status = "Online" | "Offline" | "Server Error";
 
@@ -124,6 +125,7 @@ export function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      <Loading isLoading={loading} />
       <div className="sensor-status-container">
         Sensor Status:{" "}
         <span
