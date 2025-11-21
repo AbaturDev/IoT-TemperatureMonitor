@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../config";
 import WeatherChart from "./WeatherChart";
-import type { Measurement } from "./WeatherChart";
 import "./Dashboard.css";
+import type {
+  Measurement,
+  MeasurementWithTrend,
+  SensorStatus,
+} from "../types/types";
 
 type Status = "Online" | "Offline" | "Server Error";
 
 export function Dashboard() {
   const [live, setLive] = useState<Measurement | null>(null);
-  const [status, setStatus] = useState<Status>("Server Error");
-  const [measurements, setMeasurements] = useState<Measurement[]>([]);
+  const [status, setStatus] = useState<Status>("Offline");
+  const [measurements, setMeasurements] = useState<MeasurementWithTrend[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const handleSetStatus = (e: number) => {
     if (e == 0) setStatus("Online");
@@ -22,37 +27,55 @@ export function Dashboard() {
     endDate: Date = new Date()
   ) => {
     try {
+      setLoading(true);
       const response = await fetch(
         `${API_URL}/api/measurements?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`
       );
-      const data = await response.json();
-      console.log(data);
+      const data: MeasurementWithTrend[] = await response.json();
       setMeasurements(data);
     } catch (err) {
       console.log(err);
       handleSetStatus(2);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchLatestMeasurement = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/measurements/latest`);
       const data: Measurement = await response.json();
       setLive(data);
     } catch (err) {
       console.log(err);
       handleSetStatus(2);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchSensorStatus = async () => {
     try {
+      setLoading(true);
       const response = await fetch(`${API_URL}/api/sensor/latest`);
-      const data = await response.json();
-      handleSetStatus(data.status);
+      const data: SensorStatus = await response.json();
+      console.log(data);
+      if (data.status != 0) {
+        handleSetStatus(1);
+      } else if (
+        new Date(data.timestamp).getTime() <
+        new Date().getTime() - 1 * 60 * 60 * 1000
+      ) {
+        handleSetStatus(1);
+      } else {
+        handleSetStatus(0);
+      }
     } catch (err) {
       console.log(err);
       handleSetStatus(2);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,7 +85,6 @@ export function Dashboard() {
       eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
         setLive(data);
-        console.log("live dat received: ", data);
       };
     } catch (err) {
       console.log(err);
@@ -74,8 +96,7 @@ export function Dashboard() {
     fetchEventSource();
     fetchLatestMeasurement();
     fetchSensorStatus();
-    // fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
-    fetchMeasurements(new Date("2025-11-08T00:00:00"));
+    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
   }, []);
 
   useEffect(() => {
@@ -154,7 +175,11 @@ export function Dashboard() {
         </>
       )}
       <div className="chart-container">
-        <WeatherChart data={measurements} />
+        {measurements.length > 0 ? (
+          <WeatherChart data={measurements} />
+        ) : (
+          "Brak pomiarów przez ostatnie 12h"
+        )}
       </div>
     </div>
   );

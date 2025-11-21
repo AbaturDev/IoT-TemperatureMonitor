@@ -8,26 +8,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ErrorBar,
 } from "recharts";
-
-export type Measurement = {
-  timestamp: string;
-  temperatureAvg: number;
-  temperatureMin: number;
-  temperatureMax: number;
-  humidity: number;
-  count: number;
-};
-
-export type MeasurementWithTrend = {
-  timestamp: string;
-  temperatureAvg: number;
-  temperatureMin: number;
-  temperatureMax: number;
-  humidity: number;
-  count: number;
-  temperatureTrend: number;
-};
+import type { Measurement } from "../types/types";
 
 type WeatherChartProps = {
   data: Measurement[];
@@ -35,8 +18,14 @@ type WeatherChartProps = {
 
 const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
   return (
-    <div style={{ width: "100%", height: "400px" }}>
-      <ResponsiveContainer width="100%" height="100%">
+    <div
+      style={{
+        width: "100%",
+        minWidth: "200px",
+        minHeight: "200px",
+      }}
+    >
+      <ResponsiveContainer width="100%" aspect={3}>
         <LineChart data={[...data].reverse()}>
           <CartesianGrid strokeDasharray="1 25" />
           <XAxis
@@ -74,16 +63,24 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="temperatureMin" // temperatureAvg
+            dataKey="temperatureAvg"
             stroke="#ff7300"
             dot={false}
             name="Temperatura"
-          />
+          >
+            <ErrorBar
+              dataKey="temperatureStdDev"
+              width={4}
+              strokeWidth={1}
+              direction="y"
+              stroke="#ffffff6b"
+            />
+          </Line>
           <Line
             yAxisId="right"
             type="monotone"
-            dataKey="temperatureMax" // humidity
-            stroke="#387908"
+            dataKey="humidity"
+            stroke="#00ff7f"
             dot={false}
             name="Wilgotność"
           />
@@ -91,9 +88,9 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
             yAxisId="left"
             type="monotone"
             dataKey="temperatureTrend"
-            stroke="#346dadff"
+            stroke="#00ffff"
             dot={false}
-            strokeDasharray="5 5" // <-- to robi przerywaną linię
+            strokeDasharray="5 5"
             name="Trend"
           />
         </LineChart>

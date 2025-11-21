@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.Database;
 using TemperatureMonitor.Database.Entities;
 using TemperatureMonitor.Database.Enums;
+using TemperatureMonitor.Dtos;
 using TemperatureMonitor.Dtos.MeasurementSnapshots;
 using TemperatureMonitor.Services;
 
@@ -80,9 +81,9 @@ public static class MeasurementSnapshotEndpoint
                 if (!snapshots.Any())
                     return Results.NotFound(new { message = "No measurements found in the given period" });
 
-                var temps = snapshots.Select(s => s.TemperatureMin).ToArray(); // temperatureMax
+                var temps = snapshots.Select(s => s.TemperatureMin).ToArray(); // temperatureAvg
                 var trend = TrendCalculator.CalculateLinearTrend(temps);
-
+                
                 var result = snapshots.Select((s, i) => new MeasurementSnapshotWithTrendDto
                     {
                         Id = s.Id,
@@ -92,7 +93,8 @@ public static class MeasurementSnapshotEndpoint
                         TemperatureMax = s.TemperatureMax,
                         HumidityAvg = s.HumidityAvg,
                         Count = s.Count,
-                        TemperatureTrend = trend[i]
+                        TemperatureTrend = trend[i],
+                        TemperatureStdDev = StandardDeviationCalculator.StandardDeviation(s.Count, s.TemperatureMax, s.TemperatureMin)
                     }).OrderByDescending(x => x.Timestamp)
                     .ToList();
 
@@ -105,12 +107,22 @@ public static class MeasurementSnapshotEndpoint
         {
             var maxTimestamp = await context.Measurements.MaxAsync(x => x.Timestamp, ct);
             
-            var result = await context.Measurements.FirstOrDefaultAsync(x => x.Timestamp == maxTimestamp, ct);
-
+            var measurement = await context.Measurements.FirstOrDefaultAsync(x => x.Timestamp == maxTimestamp, ct);
+            if (measurement == null)
+            {
+                return Results.NotFound(new { message = "No measurement found" });
+            }
+            
+            var result = new StatusDto
+            {
+                Timestamp = measurement.Timestamp,
+                Status = measurement.Status
+            };
+            
             return Results.Ok(result);
         })
-        .Produces<MeasurementStatus>(StatusCodes.Status200OK, "application/json")
-        .WithDescription("Returns last response from sensor");
+        .Produces<StatusDto>(StatusCodes.Status200OK, "application/json")
+        .WithDescription("Returns last response's timestamp and data from sensor");
     }
 
 }
