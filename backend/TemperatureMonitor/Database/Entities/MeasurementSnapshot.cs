@@ -9,4 +9,5 @@ public record MeasurementSnapshot
     public double TemperatureMin { get; init; }
     public double TemperatureMax { get; init; }
     public int Count { get; init; }
+    public List<Measurement> Measurements { get; init; } = new();
 }

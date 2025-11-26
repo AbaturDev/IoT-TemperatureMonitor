@@ -33,6 +33,9 @@ public class SnapshotBackgroundService : BackgroundService
                         x.Timestamp >= currentDate - TimeSpan.FromSeconds(IntervalMs / 1000));
 
         var count = await query.CountAsync(ct);
+        
+        var measurements = query.ToList();
+        
         if (count == 0)
         {
             _logger.LogWarning("No measurements to create snapshot");
@@ -47,7 +50,8 @@ public class SnapshotBackgroundService : BackgroundService
             TemperatureMax = await query.MaxAsync(x => x.Temperature!.Value, ct),
             TemperatureMin = await query.MinAsync(x => x.Temperature!.Value, ct),
             HumidityAvg = await query.AverageAsync(x => x.Humidity!.Value, ct),
-            Count = count
+            Count = count,
+            Measurements = measurements
         };
 
         await context.MeasurementSnapshots.AddAsync(measurementSnapshot, ct);
@@ -64,6 +68,7 @@ public class SnapshotBackgroundService : BackgroundService
             {
                 await using var scope = _serviceProvider.CreateAsyncScope();
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                
                 var measurementSnapshot = await CreateSnapshotAsync(context, ct);
                 if (measurementSnapshot != null)
                 {

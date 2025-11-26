@@ -3,8 +3,6 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.Database;
-using TemperatureMonitor.Database.Entities;
-using TemperatureMonitor.Database.Enums;
 using TemperatureMonitor.Dtos;
 using TemperatureMonitor.Dtos.MeasurementSnapshots;
 using TemperatureMonitor.Services;
@@ -72,36 +70,36 @@ public static class MeasurementSnapshotEndpoint
         .WithDescription("Returns a latest measurement snapshot");
         
         group.MapGet("/measurements", async (AppDbContext context, [FromQuery] DateTimeOffset startDate, [FromQuery] DateTimeOffset endDate, CancellationToken ct) =>
-            {
-                var snapshots = await context.MeasurementSnapshots
-                    .Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate)
-                    .OrderBy(x => x.Timestamp)
-                    .ToListAsync(ct);
+        {
+            var snapshots = await context.MeasurementSnapshots
+                .Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate)
+                .OrderBy(x => x.Timestamp)
+                .ToListAsync(ct);
 
-                if (!snapshots.Any())
-                    return Results.NotFound(new { message = "No measurements found in the given period" });
+            if (!snapshots.Any())
+                return Results.NotFound(new { message = "No measurements found in the given period" });
 
-                var temps = snapshots.Select(s => s.TemperatureMin).ToArray(); // temperatureAvg
-                var trend = TrendCalculator.CalculateLinearTrend(temps);
-                
-                var result = snapshots.Select((s, i) => new MeasurementSnapshotWithTrendDto
-                    {
-                        Id = s.Id,
-                        Timestamp = s.Timestamp,
-                        TemperatureAvg = s.TemperatureAvg,
-                        TemperatureMin = s.TemperatureMin,
-                        TemperatureMax = s.TemperatureMax,
-                        HumidityAvg = s.HumidityAvg,
-                        Count = s.Count,
-                        TemperatureTrend = trend[i],
-                        TemperatureStdDev = StandardDeviationCalculator.StandardDeviation(s.Count, s.TemperatureMax, s.TemperatureMin)
-                    }).OrderByDescending(x => x.Timestamp)
-                    .ToList();
+            var temps = snapshots.Select(s => s.TemperatureAvg).ToArray();
+            var trend = TrendCalculator.CalculateLinearTrend(temps);
+            
+            var result = snapshots.Select((s, i) => new MeasurementSnapshotWithTrendDto
+                {
+                    Id = s.Id,
+                    Timestamp = s.Timestamp,
+                    TemperatureAvg = s.TemperatureAvg,
+                    TemperatureMin = s.TemperatureMin,
+                    TemperatureMax = s.TemperatureMax,
+                    HumidityAvg = s.HumidityAvg,
+                    Count = s.Count,
+                    TemperatureTrend = trend[i],
+                    TemperatureStdDev = StandardDeviationCalculator.StandardDeviation(s.Measurements.Select(x => x.Temperature))
+                }).OrderByDescending(x => x.Timestamp)
+                .ToList();
 
-                return Results.Ok(result);
-            })
-            .Produces<List<MeasurementSnapshotWithTrendDto>>(StatusCodes.Status200OK, "application/json")
-            .WithDescription("Returns measurement snapshots for given time period with trend");
+            return Results.Ok(result);
+        })
+        .Produces<List<MeasurementSnapshotWithTrendDto>>(StatusCodes.Status200OK, "application/json")
+        .WithDescription("Returns measurement snapshots for given time period with trend");
 
         group.MapGet("/sensor/latest", async (AppDbContext context, CancellationToken ct) =>
         {

@@ -93,3 +93,30 @@
   display: flex;
   justify-content: center;
 }
+
+.mode-switch {
+  display: flex;
+  gap: 12px;
+  margin: 4px 0;
+  margin-top: 8px;
+}
+
+.mode-switch button {
+  background-color: var(--secondary-background-color);
+  color: white;
+  padding: 6px 24px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 100ms ease-in;
+}
+
+.mode-switch button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.mode-switch button.enabled {
+  background-color: rgba(255, 255, 255, 0.8);
+  color: black;
+}

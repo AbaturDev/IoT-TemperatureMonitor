@@ -7,3 +7,13 @@
   background-color: #0c121e;
   --secondary-background-color: #19222e;
 }
+
+button {
+  font-family: "Lexend";
+  line-height: 1.5;
+  letter-spacing: 1.5px;
+  font-weight: 400;
+  color: white;
+  background-color: #0c121e;
+  --secondary-background-color: #19222e;
+}

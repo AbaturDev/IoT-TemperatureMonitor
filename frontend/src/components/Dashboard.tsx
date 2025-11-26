@@ -6,16 +6,17 @@ import type {
   Measurement,
   MeasurementWithTrend,
   SensorStatus,
+  Status,
+  Mode,
 } from "../types/types";
 import Loading from "./Loading";
-
-type Status = "Online" | "Offline" | "Server Error";
 
 export function Dashboard() {
   const [live, setLive] = useState<Measurement | null>(null);
   const [status, setStatus] = useState<Status>("Offline");
   const [measurements, setMeasurements] = useState<MeasurementWithTrend[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [mode, setMode] = useState<Mode>(0);
 
   const handleSetStatus = (e: number) => {
     if (e == 0) setStatus("Online");
@@ -23,10 +24,31 @@ export function Dashboard() {
     else if (e == 2) setStatus("Server Error");
   };
 
-  const fetchMeasurements = async (
-    startDate: Date,
-    endDate: Date = new Date()
-  ) => {
+  const fetchMeasurements = async () => {
+    const endDate: Date = new Date();
+    let startDate: Date;
+    switch (mode) {
+      case 0:
+        startDate = new Date(endDate.getTime() - 1 * 60 * 60 * 1000);
+        break;
+
+      case 1:
+        startDate = new Date(endDate.getTime() - 4 * 60 * 60 * 1000);
+        break;
+
+      case 2:
+        startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+        break;
+
+      case 3:
+        startDate = new Date(endDate.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+
+      default:
+        startDate = new Date(endDate.getTime() - 1 * 60 * 60 * 1000);
+        break;
+    }
+
     try {
       setLoading(true);
       const response = await fetch(
@@ -86,6 +108,7 @@ export function Dashboard() {
       eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
         setLive(data);
+        fetchMeasurements();
       };
     } catch (err) {
       console.log(err);
@@ -97,18 +120,14 @@ export function Dashboard() {
     fetchEventSource();
     fetchLatestMeasurement();
     fetchSensorStatus();
-    fetchMeasurements(new Date(new Date().getTime() - 12 * 60 * 60 * 1000)); // 12h do tyłu
+    fetchMeasurements();
   }, []);
 
   useEffect(() => {
-    if (
-      live != null &&
-      measurements.length > 0 &&
-      new Date(live.timestamp).getTime() !=
-        new Date(measurements[0].timestamp).getTime()
-    ) {
-      setMeasurements([live, ...measurements]);
-    }
+    fetchMeasurements();
+  }, [mode]);
+
+  useEffect(() => {
     const checkRateMs = 6 * 60 * 1000;
 
     const interval = setInterval(() => {
@@ -176,6 +195,32 @@ export function Dashboard() {
           </div>
         </>
       )}
+      <div className="mode-switch">
+        <button
+          className={mode === 0 ? "enabled" : ""}
+          onClick={() => setMode(0)}
+        >
+          1H
+        </button>
+        <button
+          className={mode === 1 ? "enabled" : ""}
+          onClick={() => setMode(1)}
+        >
+          4H
+        </button>
+        <button
+          className={mode === 2 ? "enabled" : ""}
+          onClick={() => setMode(2)}
+        >
+          1D
+        </button>
+        <button
+          className={mode === 3 ? "enabled" : ""}
+          onClick={() => setMode(3)}
+        >
+          1W
+        </button>
+      </div>
       <div className="chart-container">
         {measurements.length > 0 ? (
           <WeatherChart data={measurements} />

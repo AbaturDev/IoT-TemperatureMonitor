@@ -11,6 +11,7 @@ import {
   ErrorBar,
 } from "recharts";
 import type { Measurement } from "../types/types";
+import CustomTooltip from "./Tooltip";
 
 type WeatherChartProps = {
   data: Measurement[];
@@ -46,20 +47,11 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
             orientation="right"
             label={{ value: "%", position: "insideRight" }}
           />
-          <Tooltip
-            labelFormatter={(t) => new Date(t).toLocaleString()}
-            formatter={(value: number) => value.toFixed(1)}
-            contentStyle={{
-              backgroundColor: "#19222e",
-              color: "white",
-              border: "2px solid #2f4158ff",
-              borderRadius: "12px",
-            }}
-            itemStyle={{ color: "white" }}
-          />
           <Legend />
+          <Tooltip
+            content={<CustomTooltip active={false} payload={[]} label={""} />}
+          />
 
-          {/* linie */}
           <Line
             yAxisId="left"
             type="monotone"

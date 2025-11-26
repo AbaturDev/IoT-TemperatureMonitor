@@ -2,17 +2,22 @@
 
 public static class StandardDeviationCalculator
 {
-    public static double StandardDeviation(int count, double? max, double? min)
+    public static double StandardDeviation(IEnumerable<double?> values)
     {
-        if (!max.HasValue || !min.HasValue || count <= 0)
+        var data = values
+            .Where(x => x.HasValue)
+            .Select(x => x!.Value)
+            .ToList();
+
+        if (data.Count == 0)
             return 0;
 
-        var range = max.Value - min.Value;
+        double mean = data.Average();
 
-        if (range < 0)
-            return 0;
+        double sumOfSquares = data.Sum(x => Math.Pow(x - mean, 2));
 
-        var result = range / Math.Sqrt(count);
+        double result = Math.Sqrt(sumOfSquares / data.Count);
+
         if (double.IsNaN(result) || double.IsInfinity(result))
             return 0;
 

@@ -22,3 +22,7 @@ export type SensorStatus = {
   timestamp: string;
   status: 0 | 1 | 2;
 };
+
+export type Status = "Online" | "Offline" | "Server Error";
+
+export type Mode = 0 | 1 | 2 | 3; // last 1h, last 4h, last 24h, last 7 days
