@@ -120,3 +120,20 @@
   background-color: rgba(255, 255, 255, 0.8);
   color: black;
 }
+
+.refresh-button {
+  background-color: var(--secondary-background-color);
+  color: white;
+  padding: 6px 24px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 100ms ease-in;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.refresh-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}

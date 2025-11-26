@@ -24,6 +24,12 @@ export function Dashboard() {
     else if (e == 2) setStatus("Server Error");
   };
 
+  const refresh = async () => {
+    fetchMeasurements();
+    fetchSensorStatus();
+    fetchLatestMeasurement();
+  };
+
   const fetchMeasurements = async () => {
     const endDate: Date = new Date();
     let startDate: Date;
@@ -195,30 +201,35 @@ export function Dashboard() {
           </div>
         </>
       )}
-      <div className="mode-switch">
-        <button
-          className={mode === 0 ? "enabled" : ""}
-          onClick={() => setMode(0)}
-        >
-          1H
-        </button>
-        <button
-          className={mode === 1 ? "enabled" : ""}
-          onClick={() => setMode(1)}
-        >
-          4H
-        </button>
-        <button
-          className={mode === 2 ? "enabled" : ""}
-          onClick={() => setMode(2)}
-        >
-          1D
-        </button>
-        <button
-          className={mode === 3 ? "enabled" : ""}
-          onClick={() => setMode(3)}
-        >
-          1W
+      <div>
+        <div className="mode-switch">
+          <button
+            className={mode === 0 ? "enabled" : ""}
+            onClick={() => setMode(0)}
+          >
+            1H
+          </button>
+          <button
+            className={mode === 1 ? "enabled" : ""}
+            onClick={() => setMode(1)}
+          >
+            4H
+          </button>
+          <button
+            className={mode === 2 ? "enabled" : ""}
+            onClick={() => setMode(2)}
+          >
+            1D
+          </button>
+          <button
+            className={mode === 3 ? "enabled" : ""}
+            onClick={() => setMode(3)}
+          >
+            1W
+          </button>
+        </div>
+        <button className="refresh-button" onClick={() => refresh()}>
+          Odśwież
         </button>
       </div>
       <div className="chart-container">
