@@ -72,6 +72,7 @@ public static class MeasurementSnapshotEndpoint
         group.MapGet("/measurements", async (AppDbContext context, [FromQuery] DateTimeOffset startDate, [FromQuery] DateTimeOffset endDate, CancellationToken ct) =>
         {
             var snapshots = await context.MeasurementSnapshots
+                .Include(x => x.Measurements)
                 .Where(x => x.Timestamp >= startDate && x.Timestamp <= endDate)
                 .OrderBy(x => x.Timestamp)
                 .ToListAsync(ct);
