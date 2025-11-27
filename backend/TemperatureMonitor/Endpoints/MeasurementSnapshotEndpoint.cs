@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TemperatureMonitor.Database;
+using TemperatureMonitor.Database.Enums;
 using TemperatureMonitor.Dtos;
 using TemperatureMonitor.Dtos.MeasurementSnapshots;
 using TemperatureMonitor.Services;
@@ -93,7 +94,7 @@ public static class MeasurementSnapshotEndpoint
                     HumidityAvg = s.HumidityAvg,
                     Count = s.Count,
                     TemperatureTrend = trend[i],
-                    TemperatureStdDev = StandardDeviationCalculator.StandardDeviation(s.Measurements.Select(x => x.Temperature))
+                    TemperatureStdDev = StandardDeviationCalculator.StandardDeviation(s.Measurements.Where(x => x.Status == MeasurementStatus.Success).Select(x => x.Temperature))
                 }).OrderByDescending(x => x.Timestamp)
                 .ToList();
 
