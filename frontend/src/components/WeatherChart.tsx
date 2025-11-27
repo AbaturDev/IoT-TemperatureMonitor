@@ -32,7 +32,9 @@ const WeatherChart: React.FC<WeatherChartProps> = ({ data }) => {
           <XAxis
             dataKey="timestamp"
             tickFormatter={(t) =>
-              new Date(t).toLocaleTimeString([], {
+              new Date(t).toLocaleString("pl-PL", {
+                day: "2-digit",
+                month: "2-digit",
                 hour: "2-digit",
                 minute: "2-digit",
               })
