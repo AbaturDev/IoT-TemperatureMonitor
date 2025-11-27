@@ -89,7 +89,6 @@ export function Dashboard() {
       setLoading(true);
       const response = await fetch(`${API_URL}/api/sensor/latest`);
       const data: SensorStatus = await response.json();
-      console.log(data);
       if (data.status != 0) {
         handleSetStatus(1);
       } else if (
@@ -236,7 +235,7 @@ export function Dashboard() {
         {measurements.length > 0 ? (
           <WeatherChart data={measurements} />
         ) : (
-          "Brak pomiarów przez ostatnie 12h"
+          "Brak pomiarów w wybranym okresie"
         )}
       </div>
     </div>
