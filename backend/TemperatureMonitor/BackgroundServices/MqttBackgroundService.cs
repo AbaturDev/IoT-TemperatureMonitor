@@ -74,15 +74,19 @@ public class MqttBackgroundService : BackgroundService
         {
             _logger.LogWarning("Disconnected from MQTT broker. Reconnecting...");
             await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
-            try
+            while (!_mqttClient.IsConnected)
             {
-                await _mqttClient.ConnectAsync(_mqttOptions, stoppingToken);
-                await _mqttClient.SubscribeAsync(_options.Value.Subscription, cancellationToken: stoppingToken);
-                _logger.LogInformation("Reconnected to MQTT broker.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to reconnect.");
+                try
+                {
+                    await _mqttClient.ConnectAsync(_mqttOptions, stoppingToken);
+                    await _mqttClient.SubscribeAsync(_options.Value.Subscription, cancellationToken: stoppingToken);
+                    _logger.LogInformation("Reconnected to MQTT broker.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to reconnect.");
+                    await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+                }
             }
         };
         
